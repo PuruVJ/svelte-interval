@@ -1,23 +1,25 @@
 import { createSubscriber } from 'svelte/reactivity';
 
 export class Interval {
-	#duration_input: (() => number) | number = $state(() => 0);
+	#duration_input: (() => number) | number = $state(0);
 	#subscribe: () => void;
-	#update: () => void = () => {};
+	#update?: () => void;
 
 	#duration = $derived(
 		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input,
 	);
-	#interval = $derived(setInterval(() => this.#update?.(), this.#duration));
+	#interval = $derived(setInterval(() => this.#update!(), this.#duration));
 
 	constructor(duration: number | (() => number)) {
 		this.#duration_input = duration;
 
 		this.#subscribe = createSubscriber((update) => {
 			this.#update = update;
-			return () => clearInterval(this.#interval);
+			return this.#clear.bind(this);
 		});
 	}
+
+	#clear = () => clearInterval(this.#interval);
 
 	get current() {
 		this.#interval;
@@ -30,7 +32,7 @@ export class Interval {
 	}
 
 	set duration(value: number | (() => number)) {
-		clearInterval(this.#interval);
+		this.#clear();
 		this.#duration_input = value;
 	}
 }
