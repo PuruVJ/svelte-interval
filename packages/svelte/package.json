@@ -6,6 +6,7 @@
 	"files": [
 		"dist/*"
 	],
+	"types": "./dist/index.svelte.d.ts",
 	"sideEffects": false,
 	"exports": {
 		".": {
