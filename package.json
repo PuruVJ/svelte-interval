@@ -11,7 +11,9 @@
 		"ci:release": "changeset publish",
 		"test": "cd packages/svelte && pnpm test"
 	},
-	"keywords": [],
+	"keywords": [
+		
+	],
 	"author": "",
 	"license": "ISC",
 	"type": "commonjs",
@@ -30,5 +32,10 @@
 		"typescript": "^5.8.3",
 		"vitest": "^3.2.4"
 	},
-	"packageManager": "pnpm@10.13.0"
+	"packageManager": "pnpm@10.13.0",
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"esbuild"
+		]
+	}
 }

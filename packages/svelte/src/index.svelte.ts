@@ -8,18 +8,16 @@ export class Interval {
 	#duration = $derived(
 		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input,
 	);
-	#interval = $derived(setInterval(() => this.#update!(), this.#duration));
+	#interval = $derived(setInterval(() => this.#update?.(), this.#duration));
 
 	constructor(duration: number | (() => number)) {
 		this.#duration_input = duration;
 
 		this.#subscribe = createSubscriber((update) => {
 			this.#update = update;
-			return this.#clear.bind(this);
+			return () => clearInterval(this.#interval);
 		});
 	}
-
-	#clear = () => clearInterval(this.#interval);
 
 	get current() {
 		this.#interval;
@@ -32,7 +30,7 @@ export class Interval {
 	}
 
 	set duration(value: number | (() => number)) {
-		this.#clear();
+		clearInterval(this.#interval);
 		this.#duration_input = value;
 	}
 }
