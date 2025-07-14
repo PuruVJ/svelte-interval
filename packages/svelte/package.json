@@ -1,6 +1,6 @@
 {
 	"name": "svelte-interval-rune",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"description": "Svelte 5 utility for creating intervals",
 	"type": "module",
 	"files": [
@@ -34,23 +34,20 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/PuruVJ/neodrag.git"
+		"url": "git+https://github.com/PuruVJ/svelte-interval.git"
 	},
 	"keywords": [
-		"draggable",
 		"svelte",
-		"react-draggable",
-		"drag",
-		"svelte",
-		"small",
-		"tiny",
-		"performant",
-		"neodrag"
+		"interval",
+		"interval-based",
+		"reactive",
+		"time",
+		"inception"
 	],
 	"author": "Puru Vijay",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/PuruVJ/neodrag/issues"
+		"url": "https://github.com/PuruVJ/svelte-interval/issues"
 	},
 	"peerDependencies": {
 		"svelte": "^3 || ^4 || ^5"

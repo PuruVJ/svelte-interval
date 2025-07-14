@@ -1,0 +1,9 @@
+{
+	"$schema": "https://unpkg.com/@changesets/config@2.2.0/schema.json",
+	"changelog": ["@changesets/changelog-github", { "repo": "PuruVJ/svelte-interval" }],
+	"commit": false,
+	"linked": [],
+	"access": "public",
+	"baseBranch": "main",
+	"ignore": []
+}
