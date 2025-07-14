@@ -20,7 +20,7 @@ You can initialize `Interval` with a static number for its duration:
 
 ```svelte
 <script>
-  import { Interval } from 'svelte-interval';
+  import { Interval } from 'svelte-interval-rune';
 
   const myInterval = new Interval(1000); // Interval runs every 1000ms (1 second)
 
@@ -31,11 +31,11 @@ You can initialize `Interval` with a static number for its duration:
 
 ### Reactive Duration
 
-One of the key features of `svelte-interval` is its ability to react to changes in Svelte's `$state`. You can pass a function to the `Interval` constructor that returns a reactive value.
+One of the key features of `svelte-interval-rune` is its ability to react to changes in Svelte's `$state`. You can pass a function to the `Interval` constructor that returns a reactive value.
 
 ```svelte
 <script>
-  import { Interval } from 'svelte-interval';
+  import { Interval } from 'svelte-interval-rune';
 
   let multiplier = $state(1);
   const reactiveInterval = new Interval(() => multiplier * 500);
@@ -62,7 +62,7 @@ Accessing the **`current`** getter on an `Interval` instance will:
 
 ```svelte
 <script>
-  import { Interval } from 'svelte-interval';
+  import { Interval } from 'svelte-interval-rune';
 
   const clock = new Interval(1000);
   const time = $derived(clock.current); // Accessing .current starts the interval
@@ -77,7 +77,7 @@ The **`duration`** getter returns the current effective duration of the interval
 
 ```svelte
 <script>
-  import { Interval } from 'svelte-interval';
+  import { Interval } from 'svelte-interval-rune';
 
   let dynamicDuration = $state(2000);
   const myInterval = new Interval(() => dynamicDuration);
@@ -93,7 +93,7 @@ You can also use the **`duration` setter** to change the interval's duration aft
 
 ```svelte
 <script>
-  import { Interval } from 'svelte-interval';
+  import { Interval } from 'svelte-interval-rune';
 
   const myInterval = new Interval(1000); // Starts with 1000ms duration
 
@@ -110,7 +110,7 @@ To re-establish a reactive connection after setting a static duration, you must 
 
 ```svelte
 <script>
-  import { Interval } from 'svelte-interval';
+  import { Interval } from 'svelte-interval-rune';
 
   let reactiveValue = $state(1000);
   const myInterval = new Interval(() => reactiveValue);

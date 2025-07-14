@@ -53,7 +53,7 @@
 	"peerDependencies": {
 		"svelte": "^3 || ^4 || ^5"
 	},
-	"homepage": "https://neodrag.dev/docs/svelte",
+	"homepage": "https://github.com/PuruVJ/svelte-interval",
 	"devDependencies": {
 		"svelte": "^5.35.6"
 	}
