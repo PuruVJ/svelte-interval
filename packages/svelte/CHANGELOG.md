@@ -1,5 +1,11 @@
 # svelte-interval-rune
 
+## 1.0.2
+
+### Patch Changes
+
+- [`2d454ef`](https://github.com/PuruVJ/svelte-interval/commit/2d454efe1ea1e4fcfc75143ca83c6b88c45d9841) Thanks [@PuruVJ](https://github.com/PuruVJ)! - fix build to not treeshake this.#interval out
+
 ## 1.0.1
 
 ### Patch Changes
