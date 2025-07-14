@@ -30,6 +30,7 @@
 	"scripts": {
 		"compile": "tsup",
 		"prepublishOnly": "pnpm compile",
+		"test": "vitest",
 		"size": "tsx size.ts"
 	},
 	"repository": {
