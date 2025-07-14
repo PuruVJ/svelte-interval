@@ -9,6 +9,7 @@ await build({
 	outDir: 'temp-dist',
 	minify: 'terser',
 	silent: true,
+	treeshake: 'recommended',
 });
 
 const file = readFileSync('temp-dist/index.svelte.js');

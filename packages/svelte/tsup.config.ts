@@ -7,6 +7,6 @@ export default defineConfig([
 		dts: true,
 		external: ['svelte/reactivity'],
 		clean: true,
-		treeshake: 'smallest',
+		treeshake: 'recommended',
 	},
 ]);
