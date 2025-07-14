@@ -1,5 +1,11 @@
 # svelte-interval-rune
 
+## 1.0.3
+
+### Patch Changes
+
+- [`504e5bc`](https://github.com/PuruVJ/svelte-interval/commit/504e5bcbaffc6b5b41e8ff425c2a770d3176e2f2) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Add types field on top level
+
 ## 1.0.2
 
 ### Patch Changes
