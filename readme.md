@@ -26,7 +26,7 @@ You can initialize `Interval` with a static number for its duration:
 
 </script>
 
-<p>Current Time: {myInterval.current;.toLocaleTimeString()}</p>
+<p>Current Time: {myInterval.current.toLocaleTimeString()}</p>
 ```
 
 ### Reactive Duration

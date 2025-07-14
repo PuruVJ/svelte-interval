@@ -25,7 +25,7 @@ You can initialize `Interval` with a static number for its duration:
   const myInterval = new Interval(1000); // Interval runs every 1000ms (1 second)
 </script>
 
-<p>Current Time: {myInterval.current;.toLocaleTimeString()}</p>
+<p>Current Time: {myInterval.current.toLocaleTimeString()}</p>
 ```
 
 ### Reactive Duration
