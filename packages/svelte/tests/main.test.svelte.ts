@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Interval } from '../src/index.svelte';
 
 // Mock timers for controlled testing
@@ -88,6 +88,34 @@ describe('Interval', () => {
 	});
 
 	describe('duration setter', () => {
+		it('should update duration when constructor was passed a function', () => {
+			// Start with a function that returns 1000
+			interval = new Interval(() => 1000);
+			expect(interval.duration).toBe(1000);
+
+			// Change to a number
+			interval.duration = 500;
+			expect(interval.duration).toBe(500);
+
+			// Change to a different function
+			interval.duration = () => 2000;
+			expect(interval.duration).toBe(2000);
+		});
+
+		it('should recreate interval with new duration', () => {
+			const setIntervalSpy = vi.spyOn(window, 'setInterval');
+			interval = new Interval(1000);
+
+			// Start the interval
+			interval.current;
+			expect(setIntervalSpy).toHaveBeenLastCalledWith(expect.any(Function), 1000);
+
+			// Change duration and verify new interval is created
+			interval.duration = 500;
+			interval.current; // Access again to trigger new interval
+			expect(setIntervalSpy).toHaveBeenLastCalledWith(expect.any(Function), 500);
+		});
+
 		it('should clear existing interval when duration changes', () => {
 			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
 			interval = new Interval(1000);

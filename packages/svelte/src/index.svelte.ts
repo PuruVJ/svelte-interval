@@ -1,12 +1,12 @@
 import { createSubscriber } from 'svelte/reactivity';
 
 export class Interval {
-	#duration_input: (() => number) | number = () => 0;
+	#duration_input: (() => number) | number = $state(() => 0);
 	#subscribe: () => void;
 	#update: () => void = () => {};
 
 	#duration = $derived(
-		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input
+		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input,
 	);
 	#interval = $derived(setInterval(() => this.#update?.(), this.#duration));
 
