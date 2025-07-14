@@ -1,6 +1,6 @@
 {
 	"name": "svelte-interval-rune",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Svelte 5 utility for creating intervals",
 	"type": "module",
 	"files": [
