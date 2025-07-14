@@ -1,5 +1,12 @@
 # @playground/svelte
 
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies [[`504e5bc`](https://github.com/PuruVJ/svelte-interval/commit/504e5bcbaffc6b5b41e8ff425c2a770d3176e2f2)]:
+  - svelte-interval-rune@1.0.3
+
 ## 0.0.4
 
 ### Patch Changes
