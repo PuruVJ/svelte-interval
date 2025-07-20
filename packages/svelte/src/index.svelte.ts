@@ -33,4 +33,8 @@ export class Interval {
 		clearInterval(this.#interval);
 		this.#duration_input = value;
 	}
+
+	[Symbol.dispose]() {
+		clearInterval(this.#interval);
+	}
 }

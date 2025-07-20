@@ -8,7 +8,7 @@ A Svelte utility class for managing intervals with reactive durations. This pack
 - **Simple API:** Easy to use `Interval` class for managing `setInterval`.
 - **Automatic Cleanup:** Handles `clearInterval` when durations change or components unmount
 - **Lazy Initialization:** Intervals are only created when `current` is first accessed, optimizing resource usage.
-- **Tiny Footprint:** Only 202B (minified + brotlied).
+- **Tiny Footprint:** Only 216B (minified + brotlied).
 
 ## Usage
 
@@ -23,10 +23,21 @@ You can initialize `Interval` with a static number for its duration:
   import { Interval } from 'svelte-interval-rune';
 
   const myInterval = new Interval(1000); // Interval runs every 1000ms (1 second)
-
 </script>
 
 <p>Current Time: {myInterval.current.toLocaleTimeString()}</p>
+```
+
+### Automatic Cleanup
+
+When the `Interval` instance is destroyed, it will automatically clean up the underlying `setInterval` and prevent memory leaks. In addition to this, this works quite well with `using` keyword too:
+
+```svelte
+<script>
+  import { Interval } from 'svelte-interval-rune';
+
+  using myInterval = new Interval(1000);
+</script>
 ```
 
 ### Reactive Duration
@@ -57,8 +68,6 @@ Accessing the **`current`** getter on an `Interval` instance will:
 1.  Trigger the creation of the underlying `setInterval` if it hasn't been created yet.
 2.  Return a new `Date` object representing the current time.
 3.  Establish a subscription to the interval, ensuring that updates are triggered.
-
-<!-- end list -->
 
 ```svelte
 <script>
