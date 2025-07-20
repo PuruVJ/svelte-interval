@@ -1,5 +1,11 @@
 # svelte-interval-rune
 
+## 1.1.0
+
+### Minor Changes
+
+- [`14b4d18`](https://github.com/PuruVJ/svelte-interval/commit/14b4d18ee6a76aa3d684172b4051961afa162a67) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Symbol.dispose
+
 ## 1.0.3
 
 ### Patch Changes
