@@ -11,7 +11,7 @@ A Svelte utility class for managing intervals with reactive durations. This pack
 - **Simple API:** Easy to use `Interval` class for managing `setInterval`.
 - **Automatic Cleanup:** Handles `clearInterval` when durations change or components unmount
 - **Lazy Initialization:** Intervals are only created when `current` or `tickCount` is first accessed, optimizing resource usage (unless `immediate: true`).
-- **Tiny Footprint:** Only 336B (minified + brotlied).
+- **Tiny Footprint:** Only 356B (minified + brotlied).
 
 ## Usage
 
