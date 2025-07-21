@@ -38,6 +38,7 @@ export interface IntervalOptions {
 export class Interval {
 	#subscribe: () => void;
 	#update?: () => void;
+	#interval_id = 0;
 
 	#duration_input: (() => number) | number = $state(0);
 	#paused = $state(false);
@@ -47,9 +48,15 @@ export class Interval {
 	#duration = $derived(
 		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input,
 	);
-	#interval = $derived(
-		setInterval((this.#version, untrack(() => this.#run_func.bind(this))), this.#duration),
-	);
+	#interval = $derived.by(() => {
+		clearInterval(this.#interval_id);
+		this.#version; // Track version for reactivity
+		this.#interval_id = setInterval(
+			untrack(() => this.#run_func.bind(this)),
+			this.#duration,
+		) as unknown as number;
+		return this.#interval_id;
+	});
 
 	#run_func() {
 		if (this.#paused) return;
@@ -74,7 +81,7 @@ export class Interval {
 
 		this.#subscribe = createSubscriber((update) => {
 			this.#update = update;
-			return () => clearInterval(this.#interval);
+			return () => clearInterval(this.#interval_id);
 		});
 
 		if (immediate) this.#interval;
@@ -89,7 +96,6 @@ export class Interval {
 		this.#paused = false;
 
 		if (immediate) {
-			clearInterval(this.#interval);
 			this.#version += 1;
 			this.#run_func();
 		}
@@ -135,12 +141,11 @@ export class Interval {
 	}
 
 	set duration(value: number | (() => number)) {
-		clearInterval(this.#interval);
 		this.#duration_input = value;
 		this.#version += 1;
 	}
 
 	[Symbol.dispose]() {
-		clearInterval(this.#interval);
+		clearInterval(this.#interval_id);
 	}
 }

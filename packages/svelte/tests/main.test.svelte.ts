@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Interval } from '../src/index.svelte';
+import { flushSync, tick } from 'svelte';
 
 // Mock timers for controlled testing
 vi.useFakeTimers();
@@ -409,6 +410,52 @@ describe('Interval', () => {
 		});
 	});
 
+	describe('cleanup', () => {
+		it('should clean up interval when effect is disposed', async () => {
+			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+
+			const cleanup = $effect.root(() => {
+				const interval = new Interval(1000);
+
+				$inspect(interval.current);
+			});
+
+			// Cleanup the effect, which should dispose the interval
+			cleanup();
+
+			expect(clearIntervalSpy).toHaveBeenCalled();
+		});
+
+		it('should clean up interval with immediate option when effect is disposed', () => {
+			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+
+			const cleanup = $effect.root(() => {
+				new Interval(1000, { immediate: true });
+			});
+
+			// Cleanup the effect, which should dispose the interval
+			cleanup();
+
+			expect(clearIntervalSpy).toHaveBeenCalled();
+		});
+
+		it('should clean up reactive interval when effect is disposed', () => {
+			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+
+			const cleanup = $effect.root(() => {
+				let duration = $state(500);
+				const interval = new Interval(() => duration);
+
+				$inspect(interval.tickCount); // Start the interval
+			});
+
+			// Cleanup the effect, which should dispose the interval
+			cleanup();
+
+			expect(clearIntervalSpy).toHaveBeenCalled();
+		});
+	});
+
 	describe('Symbol.dispose', () => {
 		it('should clear interval when disposed', () => {
 			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
@@ -432,7 +479,9 @@ describe('Interval', () => {
 				interval.duration = i * 100;
 			}
 
-			expect(clearIntervalSpy).toHaveBeenCalledTimes(10);
+			interval.current;
+
+			expect(clearIntervalSpy).toHaveBeenCalledTimes(1);
 		});
 
 		it('should handle reactive state changes properly', () => {
