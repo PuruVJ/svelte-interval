@@ -11,7 +11,7 @@ A Svelte utility class for managing intervals with reactive durations. This pack
 - **Simple API:** Easy to use `Interval` class for managing `setInterval`.
 - **Automatic Cleanup:** Handles `clearInterval` when durations change or components unmount
 - **Lazy Initialization:** Intervals are only created when `current` or `tickCount` is first accessed, optimizing resource usage (unless `immediate: true`).
-- **Tiny Footprint:** Only 356B (minified + brotlied).
+- **Tiny Footprint:** Only 350B (minified + brotlied).
 
 ## Usage
 
@@ -97,11 +97,11 @@ The `Interval` class provides pause and resume functionality that allows you to 
 
   const timer = new Interval(1000);
 
-  function togglePause() {
-    if (timer.paused) {
-      timer.resume();
-    } else {
+  function toggleActive() {
+    if (timer.isActive) {
       timer.pause();
+    } else {
+      timer.resume();
     }
   }
 
@@ -112,10 +112,10 @@ The `Interval` class provides pause and resume functionality that allows you to 
 
 <p>Current Time: {timer.current.toLocaleTimeString()}</p>
 <p>Tick Count: {timer.tickCount}</p>
-<p>Status: {timer.paused ? 'Paused' : 'Running'}</p>
+<p>Status: {timer.isActive ? 'Running' : 'Paused'}</p>
 
-<button onclick={togglePause}>
-  {timer.paused ? 'Resume' : 'Pause'}
+<button onclick={toggleActive}>
+  {timer.isActive ? 'Pause' : 'Resume'}
 </button>
 <button onclick={resumeImmediate}>Resume Immediately</button>
 ```
@@ -176,9 +176,9 @@ Both the **`current`** and **`tickCount`** getters will automatically start the 
 The time is: {time.toLocaleTimeString()}
 ```
 
-### `paused` Getter
+### `isActive` Getter
 
-The **`paused`** getter returns the current pause state of the interval:
+The **`isActive`** getter returns the current active state of the interval:
 
 ```svelte
 <script>
@@ -188,11 +188,11 @@ The **`paused`** getter returns the current pause state of the interval:
   timer.current; // Start the interval
 
   // Use in reactive context
-  const status = $derived(timer.paused ? 'Paused' : 'Running');
+  const status = $derived(timer.isActive ? 'Running' : 'Paused');
 </script>
 
 <p>Timer Status: {status}</p>
-<button onclick={() => timer.paused ? timer.resume() : timer.pause()}>
+<button onclick={() => timer.isActive ? timer.pause() : timer.resume()}>
   Toggle
 </button>
 ```
@@ -299,6 +299,10 @@ To re-establish a reactive connection after setting a static duration, you must 
   <button onclick={() => speed = speed === 1000 ? 100 : 1000}>
     Toggle Background Speed
   </button>
+
+  <button onclick={() => backgroundClock.isActive ? backgroundClock.pause() : backgroundClock.resume()}>
+    {backgroundClock.isActive ? 'Pause' : 'Resume'} Background
+  </button>
 </div>
 ```
 
@@ -326,8 +330,8 @@ To re-establish a reactive connection after setting a static duration, you must 
 
   <input type="range" min="100" max="2000" step="100" bind:value={duration} />
 
-  <button onclick={() => timer.paused ? timer.resume() : timer.pause()}>
-    {timer.paused ? 'Resume' : 'Pause'}
+  <button onclick={() => timer.isActive ? timer.pause() : timer.resume()}>
+    {timer.isActive ? 'Pause' : 'Resume'}
   </button>
 
   <button onclick={reset}>Reset Timer</button>
@@ -348,7 +352,7 @@ To re-establish a reactive connection after setting a static duration, you must 
 
 - `current: Date` - Gets current time and starts/subscribes to the interval (auto-starts interval)
 - `duration: number` - Gets or sets the interval duration in milliseconds
-- `paused: boolean` - Gets the current pause state
+- `isActive: boolean` - Gets the current active state of the interval
 - `tickCount: number` - Gets the number of times the interval has fired (auto-starts interval)
 
 ### Methods

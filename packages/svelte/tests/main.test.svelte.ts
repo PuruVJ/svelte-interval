@@ -68,11 +68,11 @@ describe('Interval', () => {
 			interval = new Interval(1000, { immediate: true });
 
 			// Should start unpaused regardless of immediate option
-			expect(interval.paused).toBe(false);
+			expect(interval.isActive).toBe(true);
 
 			// Should still be able to pause
 			interval.pause();
-			expect(interval.paused).toBe(true);
+			expect(interval.isActive).toBe(false);
 		});
 	});
 
@@ -168,38 +168,38 @@ describe('Interval', () => {
 	describe('pause and resume functionality', () => {
 		it('should start unpaused by default', () => {
 			interval = new Interval(1000);
-			expect(interval.paused).toBe(false);
+			expect(interval.isActive).toBe(true);
 		});
 
 		it('should pause the interval', () => {
 			interval = new Interval(1000);
 			interval.pause();
-			expect(interval.paused).toBe(true);
+			expect(interval.isActive).toBe(false);
 		});
 
 		it('should resume the interval', () => {
 			interval = new Interval(1000);
 			interval.pause();
-			expect(interval.paused).toBe(true);
+			expect(interval.isActive).toBe(false);
 
 			interval.resume();
-			expect(interval.paused).toBe(false);
+			expect(interval.isActive).toBe(true);
 		});
 
 		it('should handle multiple pause/resume cycles', () => {
 			interval = new Interval(1000);
 
 			interval.pause();
-			expect(interval.paused).toBe(true);
+			expect(interval.isActive).toBe(false);
 
 			interval.resume();
-			expect(interval.paused).toBe(false);
+			expect(interval.isActive).toBe(true);
 
 			interval.pause();
-			expect(interval.paused).toBe(true);
+			expect(interval.isActive).toBe(false);
 
 			interval.resume(true);
-			expect(interval.paused).toBe(false);
+			expect(interval.isActive).toBe(true);
 		});
 
 		it('should handle pause/resume when not yet started', () => {
