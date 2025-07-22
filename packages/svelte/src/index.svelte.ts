@@ -40,7 +40,7 @@ export class Interval {
 	#interval_id = 0;
 
 	#duration_input: (() => number) | number = $state(0);
-	#isActive = $state(true);
+	#is_active = $state(true);
 	#tick_count = $state(0);
 	#version = $state(0);
 
@@ -57,7 +57,7 @@ export class Interval {
 	});
 
 	#run_func() {
-		if (!this.#isActive) return;
+		if (!this.#is_active) return;
 		this.#tick_count++;
 		this.#update?.();
 	}
@@ -91,7 +91,7 @@ export class Interval {
 	 * @param immediate - If true, immediately triggers a tick and resets the interval timing.
 	 */
 	resume(immediate = false) {
-		this.#isActive = true;
+		this.#is_active = true;
 
 		if (immediate) {
 			this.#version++;
@@ -103,14 +103,14 @@ export class Interval {
 	 * Pauses the interval. The interval continues running in the background but stops executing callbacks and incrementing tick count.
 	 */
 	pause() {
-		this.#isActive = false;
+		this.#is_active = false;
 	}
 
 	/**
 	 * Gets the current paused state of the interval.
 	 */
 	get isActive() {
-		return this.#isActive;
+		return this.#is_active;
 	}
 
 	/**
