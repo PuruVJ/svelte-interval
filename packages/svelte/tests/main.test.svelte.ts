@@ -417,7 +417,7 @@ describe('Interval', () => {
 			const cleanup = $effect.root(() => {
 				const interval = new Interval(1000);
 
-				$inspect(interval.current);
+				interval.current;
 			});
 
 			// Cleanup the effect, which should dispose the interval
@@ -446,7 +446,7 @@ describe('Interval', () => {
 				let duration = $state(500);
 				const interval = new Interval(() => duration);
 
-				$inspect(interval.tickCount); // Start the interval
+				interval.tickCount; // Start the interval
 			});
 
 			// Cleanup the effect, which should dispose the interval
