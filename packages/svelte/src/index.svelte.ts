@@ -1,4 +1,3 @@
-import { untrack } from 'svelte';
 import { createSubscriber } from 'svelte/reactivity';
 
 export interface IntervalOptions {
@@ -49,12 +48,11 @@ export class Interval {
 		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input,
 	);
 	#interval = $derived.by(() => {
+		this.#version;
+
 		clearInterval(this.#interval_id);
-		this.#version; // Track version for reactivity
-		this.#interval_id = setInterval(
-			untrack(() => this.#run_func.bind(this)),
-			this.#duration,
-		) as unknown as number;
+		this.#interval_id = setInterval(this.#run_func.bind(this), this.#duration) as unknown as number;
+
 		return this.#interval_id;
 	});
 
