@@ -60,7 +60,7 @@ export class Interval {
 
 	#run_func() {
 		if (!this.#isActive) return;
-		this.#tick_count += 1;
+		this.#tick_count++;
 		this.#update?.();
 	}
 
@@ -96,7 +96,7 @@ export class Interval {
 		this.#isActive = true;
 
 		if (immediate) {
-			this.#version += 1;
+			this.#version++;
 			this.#run_func();
 		}
 	}
