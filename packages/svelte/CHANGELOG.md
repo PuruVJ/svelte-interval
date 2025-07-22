@@ -1,5 +1,21 @@
 # svelte-interval-rune
 
+## 1.2.0
+
+### Minor Changes
+
+- [#9](https://github.com/PuruVJ/svelte-interval/pull/9) [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Add tickCount
+
+- [#9](https://github.com/PuruVJ/svelte-interval/pull/9) [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Add JSDoc for better documentation
+
+- [#9](https://github.com/PuruVJ/svelte-interval/pull/9) [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Add immediate: boolean option
+
+- [#9](https://github.com/PuruVJ/svelte-interval/pull/9) [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Add pause() and resume()
+
+### Patch Changes
+
+- [#9](https://github.com/PuruVJ/svelte-interval/pull/9) [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb) Thanks [@PuruVJ](https://github.com/PuruVJ)! - simplify interval handling, add tests for cleanup
+
 ## 1.1.0
 
 ### Minor Changes
