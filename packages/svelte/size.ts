@@ -6,6 +6,7 @@ await build({
 	entry: ['src/index.svelte.ts'],
 	format: ['esm'],
 	dts: false,
+	external: ['svelte', 'svelte/reactivity'],
 	outDir: 'temp-dist',
 	minify: 'terser',
 	silent: true,
