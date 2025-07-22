@@ -142,7 +142,7 @@ export class Interval {
 
 	set duration(value: number | (() => number)) {
 		this.#duration_input = value;
-		this.#version += 1;
+		this.#version++;
 	}
 
 	[Symbol.dispose]() {
