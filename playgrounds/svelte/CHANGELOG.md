@@ -1,5 +1,12 @@
 # @playground/svelte
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [[`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb), [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb), [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb), [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb), [`70bacaa`](https://github.com/PuruVJ/svelte-interval/commit/70bacaaf48dcd7973349097ee763b31345bfc4cb)]:
+  - svelte-interval-rune@1.2.0
+
 ## 0.0.6
 
 ### Patch Changes
