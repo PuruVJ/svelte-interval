@@ -82,7 +82,7 @@ export class Interval {
 			return () => clearInterval(this.#interval_id);
 		});
 
-		if (immediate) this.#interval;
+		if (immediate) this.#kickoff_subscriptions();
 	}
 
 	/**
