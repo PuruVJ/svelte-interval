@@ -43,7 +43,7 @@ export class Interval {
 	#duration_input: (() => number) | number = $state(0);
 	#isActive = $state(true);
 	#tick_count = $state(0);
-	#version = $state(1);
+	#version = $state(0);
 
 	#duration = $derived(
 		typeof this.#duration_input === 'function' ? this.#duration_input() : this.#duration_input,
