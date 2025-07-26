@@ -1,5 +1,7 @@
 import { createSubscriber } from 'svelte/reactivity';
 
+const INTERNAL = Symbol();
+
 export interface IntervalOptions {
 	/**
 	 * Create the interval immediately upon initialization.
@@ -44,8 +46,7 @@ export class Interval {
 	#tick_count = $state(0);
 	#version = $state(0);
 
-	/** @deprecated */
-	_: {
+	[INTERNAL]: {
 		run_func: () => void;
 		is_active: boolean;
 		tick_count: number;
@@ -89,7 +90,7 @@ export class Interval {
 		this.#duration_input = duration;
 
 		const self = this; // Use 'self' to avoid scope issues
-		this._ = {
+		this[INTERNAL] = {
 			get run_func() {
 				return self.#run_func;
 			},
@@ -225,7 +226,7 @@ export function sync(...intervals: Interval[]) {
 	// Store original run functions
 	const original_run_funcs = new Map();
 	for (const interval of intervals) {
-		original_run_funcs.set(interval, interval._.run_func);
+		original_run_funcs.set(interval, interval[INTERNAL].run_func);
 	}
 
 	let sync_active = $state(false);
@@ -239,9 +240,9 @@ export function sync(...intervals: Interval[]) {
 			for (const interval of intervals) {
 				if (interval === leader) {
 					// Leader triggers all intervals
-					interval._.run_func = () => {
+					interval[INTERNAL].run_func = () => {
 						// Only proceed if leader is active
-						if (!leader._.is_active) return;
+						if (!leader[INTERNAL].is_active) return;
 
 						// Execute all intervals' original behaviors
 						for (const synced_interval of intervals) {
@@ -251,13 +252,13 @@ export function sync(...intervals: Interval[]) {
 					};
 				} else {
 					// Followers do nothing
-					interval._.run_func = () => {};
+					interval[INTERNAL].run_func = () => {};
 				}
 			}
 
 			// Start the leader (if not already started) AND force restart with new behavior
 			leader.current; // This starts the leader if not already started
-			leader._.force_restart(); // This restarts with new sync behavior
+			leader[INTERNAL].force_restart(); // This restarts with new sync behavior
 		},
 
 		disable() {
@@ -267,10 +268,10 @@ export function sync(...intervals: Interval[]) {
 			// Restore original functions
 			intervals.forEach((interval) => {
 				const original_func = original_run_funcs.get(interval);
-				interval._.run_func = original_func;
+				interval[INTERNAL].run_func = original_func;
 
 				// Force restart each interval to restore individual timing
-				interval._.force_restart();
+				interval[INTERNAL].force_restart();
 			});
 		},
 
@@ -299,16 +300,16 @@ export class LimitedInterval extends Interval {
 		this.#max_ticks = maxTicks;
 
 		// Override run function with limit checking
-		this._.run_func = () => {
+		this[INTERNAL].run_func = () => {
 			if (this.#is_completed) return;
 
 			// Execute base interval behavior
-			if (!this._.is_active) return;
-			this._.increment_tick();
-			this._.trigger_update();
+			if (!this[INTERNAL].is_active) return;
+			this[INTERNAL].increment_tick();
+			this[INTERNAL].trigger_update();
 
 			// Check completion
-			const ticksSinceBaseline = this._.tick_count - this.#completion_baseline;
+			const ticksSinceBaseline = this[INTERNAL].tick_count - this.#completion_baseline;
 			if (ticksSinceBaseline >= this.#max_ticks) {
 				this.#is_completed = true;
 				this.pause();
