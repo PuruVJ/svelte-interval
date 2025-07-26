@@ -5,18 +5,18 @@
   const in2 = new LimitedInterval(200, 200);
   const in3 = new LimitedInterval(300, 100);
 
-  const controller = sync(in1, in2, in3);
+  const sync_controller = sync(in1, in2, in3);
 
   function start() {
-    controller.start();
+    sync_controller.enable();
   }
 
   function stop() {
-    controller.stop();
+    sync_controller.disable();
   }
 </script>
 
-<p>Leader: {!!controller.leader}</p>
+<p>Leader: {!!sync_controller.leader}</p>
 
 <p>1: {in1.tickCount}</p>
 <p>2: {in2.tickCount}</p>

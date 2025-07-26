@@ -231,7 +231,7 @@ export function sync(...intervals: Interval[]) {
 	let sync_active = $state(false);
 
 	return {
-		start() {
+		enable() {
 			if (sync_active) return;
 			sync_active = true;
 
@@ -260,7 +260,7 @@ export function sync(...intervals: Interval[]) {
 			leader._.force_restart(); // This restarts with new sync behavior
 		},
 
-		stop() {
+		disable() {
 			if (!sync_active) return;
 			sync_active = false;
 

@@ -8,11 +8,11 @@
   const controller = sync(in1, in2, in3);
 
   function start() {
-    controller.start();
+    controller.enable();
   }
 
   function stop() {
-    controller.stop();
+    controller.disable();
   }
 </script>
 

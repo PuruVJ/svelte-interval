@@ -716,7 +716,7 @@ describe('sync function', () => {
 
 	afterEach(() => {
 		vi.clearAllTimers();
-		controller?.stop();
+		controller?.disable();
 	});
 
 	describe('basic synchronization', () => {
@@ -728,7 +728,7 @@ describe('sync function', () => {
 			controller = sync(interval1, interval2, interval3);
 			expect(controller.leader).toBe(interval2);
 
-			controller.start(); // This starts the leader automatically
+			controller.enable(); // This starts the leader automatically
 
 			// After 100ms, all should tick once (leader's pace)
 			vi.advanceTimersByTime(150);
@@ -773,7 +773,7 @@ describe('sync function', () => {
 		it('should start synchronization', () => {
 			expect(controller.isActive).toBe(false);
 
-			controller.start(); // This starts the leader automatically
+			controller.enable(); // This starts the leader automatically
 			expect(controller.isActive).toBe(true);
 
 			vi.advanceTimersByTime(150);
@@ -783,14 +783,14 @@ describe('sync function', () => {
 		});
 
 		it('should stop synchronization and restore individual behavior', () => {
-			controller.start(); // This starts the leader automatically
+			controller.enable(); // This starts the leader automatically
 
 			vi.advanceTimersByTime(250);
 			expect(interval1.tickCount).toBe(2);
 			expect(interval2.tickCount).toBe(2);
 			expect(interval3.tickCount).toBe(2);
 
-			controller.stop();
+			controller.disable();
 			expect(controller.isActive).toBe(false);
 
 			// Clear timers to ensure clean restart with individual timing
@@ -812,13 +812,13 @@ describe('sync function', () => {
 		});
 
 		it('should not start if already active', () => {
-			controller.start();
+			controller.enable();
 
 			// Start intervals after sync is active and capture initial count
 			expect(interval1.tickCount).toBe(0);
 			const ticksBefore = interval1.tickCount; // This will be 0
 
-			controller.start(); // Should be no-op
+			controller.enable(); // Should be no-op
 			vi.advanceTimersByTime(150);
 
 			// Should get exactly one tick since only one start() was effective
@@ -827,7 +827,7 @@ describe('sync function', () => {
 		});
 
 		it('should not stop if already inactive', () => {
-			expect(() => controller.stop()).not.toThrow();
+			expect(() => controller.disable()).not.toThrow();
 			expect(controller.isActive).toBe(false);
 		});
 	});
@@ -840,17 +840,17 @@ describe('sync function', () => {
 		});
 
 		it('should return leader when active', () => {
-			controller.start();
+			controller.enable();
 			expect(controller.leader).toBe(interval2);
 		});
 
 		it('should return leader even when inactive', () => {
 			expect(controller.leader).toBe(interval2);
 
-			controller.start();
+			controller.enable();
 			expect(controller.leader).toBe(interval2);
 
-			controller.stop();
+			controller.disable();
 			expect(controller.leader).toBe(interval2);
 		});
 	});
@@ -867,7 +867,7 @@ describe('sync function', () => {
 			controller = sync(interval1, interval2);
 			expect(controller.leader).toBe(interval1); // 0 is fastest
 
-			expect(() => controller.start()).not.toThrow();
+			expect(() => controller.enable()).not.toThrow();
 		});
 	});
 
@@ -879,7 +879,7 @@ describe('sync function', () => {
 		});
 
 		it('should respect individual pause states', () => {
-			controller.start(); // This starts the leader automatically
+			controller.enable(); // This starts the leader automatically
 
 			interval1.pause();
 
@@ -889,7 +889,7 @@ describe('sync function', () => {
 		});
 
 		it('should handle leader being paused', () => {
-			controller.start(); // This starts the leader automatically
+			controller.enable(); // This starts the leader automatically
 
 			interval2.pause(); // Pause the leader
 
@@ -912,7 +912,7 @@ describe('Integration: sync with LimitedInterval', () => {
 
 	afterEach(() => {
 		vi.clearAllTimers();
-		controller?.stop();
+		controller?.disable();
 	});
 
 	describe('synchronized limited intervals', () => {
@@ -922,7 +922,7 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited3 = new LimitedInterval(200, 4);
 
 			controller = sync(limited1, limited2, limited3);
-			controller.start(); // Leader starts automatically
+			controller.enable(); // Leader starts automatically
 
 			// All sync to 100ms pace until leader completes
 			vi.advanceTimersByTime(350); // 3 ticks - leader completes
@@ -944,7 +944,7 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited3 = new LimitedInterval(200, 5);
 
 			controller = sync(limited1, limited2, limited3);
-			controller.start(); // limited2 (leader) starts automatically
+			controller.enable(); // limited2 (leader) starts automatically
 
 			vi.advanceTimersByTime(250); // 2 ticks - leader completes
 			expect(limited1.tickCount).toBe(2);
@@ -966,7 +966,7 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited1 = new LimitedInterval(100, 3);
 
 			controller = sync(regular, limited1);
-			controller.start(); // limited1 (leader) starts automatically
+			controller.enable(); // limited1 (leader) starts automatically
 
 			vi.advanceTimersByTime(350); // 3 ticks - limited1 completes
 			expect(regular.tickCount).toBe(3);
@@ -988,7 +988,7 @@ describe('Integration: sync with LimitedInterval', () => {
 			controller = sync(regular1, limited1, regular2, limited2);
 			expect(controller.leader).toBe(limited1); // 100ms is fastest
 
-			controller.start(); // limited1 (leader) starts automatically
+			controller.enable(); // limited1 (leader) starts automatically
 
 			vi.advanceTimersByTime(250); // 2 ticks - limited1 completes
 			expect(regular1.tickCount).toBe(2);
@@ -1012,7 +1012,7 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited2 = new LimitedInterval(200, 5);
 
 			controller = sync(limited1, limited2);
-			controller.start(); // limited1 (leader) starts automatically
+			controller.enable(); // limited1 (leader) starts automatically
 
 			vi.advanceTimersByTime(250); // limited1 completes after 2 ticks
 			expect(limited1.isCompleted).toBe(true);
@@ -1033,7 +1033,7 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited2 = new LimitedInterval(200, 5);
 
 			controller = sync(limited1, limited2);
-			controller.start(); // limited1 starts automatically
+			controller.enable(); // limited1 starts automatically
 
 			vi.advanceTimersByTime(150); // 1 tick
 			expect(limited1.tickCount).toBe(1);
@@ -1055,12 +1055,12 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited2 = new LimitedInterval(200, 5);
 
 			controller = sync(limited1, limited2);
-			controller.start(); // limited1 (leader) starts automatically
+			controller.enable(); // limited1 (leader) starts automatically
 
 			vi.advanceTimersByTime(250); // limited1 completes
 			expect(limited1.isCompleted).toBe(true);
 
-			controller.stop();
+			controller.disable();
 			expect(limited1.isCompleted).toBe(true); // Should remain completed
 			expect(limited2.isCompleted).toBe(false);
 		});
@@ -1070,13 +1070,13 @@ describe('Integration: sync with LimitedInterval', () => {
 			limited2 = new LimitedInterval(100, 10);
 
 			controller = sync(limited1, limited2);
-			controller.start(); // limited2 (leader) starts automatically
+			controller.enable(); // limited2 (leader) starts automatically
 
 			vi.advanceTimersByTime(250); // 2 ticks at 100ms pace
 			expect(limited1.tickCount).toBe(2);
 			expect(limited2.tickCount).toBe(2);
 
-			controller.stop();
+			controller.disable();
 
 			// Clear timers to ensure clean restart with individual timing
 			vi.clearAllTimers();
