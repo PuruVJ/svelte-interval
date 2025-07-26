@@ -10,6 +10,6 @@
 <p>1: {interval1.tickCount}</p>
 <p>2: {interval2.tickCount}</p>
 
-<button onclick={() => interval1.paused ? interval1.resume(true) : interval1.pause()}>Toggle</button>
+<button onclick={() => !interval1.isActive ? interval1.resume(true) : interval1.pause()}>Toggle</button>
 
 <button onclick={() => interval2.duration = interval2.duration === 100 ? 1000 : 100}>Change Interval2 time</button>
