@@ -224,7 +224,7 @@ export function sync(...intervals: Interval[]) {
 	}
 
 	// Store original run functions
-	const original_run_funcs = new Map();
+	const original_run_funcs = new Map<Interval, () => void>();
 	for (const interval of intervals) {
 		original_run_funcs.set(interval, interval[INTERNAL].run_func);
 	}
@@ -247,7 +247,7 @@ export function sync(...intervals: Interval[]) {
 						// Execute all intervals' original behaviors
 						for (const synced_interval of intervals) {
 							const original_func = original_run_funcs.get(synced_interval);
-							original_func.call(synced_interval);
+							original_func?.call(synced_interval);
 						}
 					};
 				} else {
@@ -266,13 +266,15 @@ export function sync(...intervals: Interval[]) {
 			sync_active = false;
 
 			// Restore original functions
-			intervals.forEach((interval) => {
+			for (const interval of intervals) {
 				const original_func = original_run_funcs.get(interval);
-				interval[INTERNAL].run_func = original_func;
+				if (original_func) {
+					interval[INTERNAL].run_func = original_func;
 
-				// Force restart each interval to restore individual timing
-				interval[INTERNAL].force_restart();
-			});
+					// Force restart each interval to restore individual timing
+					interval[INTERNAL].force_restart();
+				}
+			}
 		},
 
 		get isActive() {
