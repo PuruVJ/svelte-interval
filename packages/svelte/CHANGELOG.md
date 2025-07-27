@@ -1,5 +1,11 @@
 # svelte-interval-rune
 
+## 1.3.1
+
+### Patch Changes
+
+- [#13](https://github.com/PuruVJ/svelte-interval/pull/13) [`eafb609`](https://github.com/PuruVJ/svelte-interval/commit/eafb609272e2a239126fc0ddba9db5a631f04ad2) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Make stop() and isStopped reactive
+
 ## 1.3.0
 
 ### Minor Changes
