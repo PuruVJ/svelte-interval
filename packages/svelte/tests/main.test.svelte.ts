@@ -325,6 +325,45 @@ describe('Interval', () => {
 		});
 	});
 
+	describe('stop functionality', () => {
+		it('should stop interval and set isStopped to true', () => {
+			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+			interval = new Interval(100);
+			interval.current; // Start interval
+
+			expect(interval.isStopped).toBe(false);
+
+			interval.stop();
+
+			expect(interval.isStopped).toBe(true);
+			expect(interval.isActive).toBe(false);
+			expect(clearIntervalSpy).toHaveBeenCalled();
+		});
+
+		it('should not tick after being stopped', () => {
+			interval = new Interval(100);
+			interval.current;
+
+			vi.advanceTimersByTime(150);
+			expect(interval.tickCount).toBe(1);
+
+			interval.stop();
+			vi.advanceTimersByTime(500);
+			expect(interval.tickCount).toBe(1); // Should not increment
+		});
+
+		it('should not be resumable after stop', () => {
+			interval = new Interval(100);
+			interval.current;
+
+			interval.stop();
+			interval.resume();
+
+			expect(interval.isStopped).toBe(true);
+			expect(interval.isActive).toBe(false);
+		});
+	});
+
 	describe('interval behavior', () => {
 		it('should create interval with correct duration', () => {
 			const setIntervalSpy = vi.spyOn(window, 'setInterval');
