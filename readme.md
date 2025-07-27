@@ -1,364 +1,308 @@
 # Svelte Interval
 
-A Svelte utility class for managing intervals with reactive durations. This package provides a convenient way to create and control `setInterval` operations, allowing the interval's duration to be a static number or dynamically tied to Svelte's reactivity system.
+A comprehensive Svelte utility package for managing intervals with reactive durations, synchronization, and advanced control features. This package provides convenient classes and functions for creating and controlling `setInterval` operations with full reactivity support.
 
 **Features:**
 
-- **Reactive Durations:** Dynamically change interval timings based on Svelte's `$state`.
-- **Pause/Resume Control:** Pause and resume intervals while maintaining tick count.
-- **Tick Counting:** Track how many times the interval has fired.
-- **Immediate Start Option:** Optionally create the interval immediately upon initialization.
-- **Simple API:** Easy to use `Interval` class for managing `setInterval`.
+- **Core Interval Management:** Basic reactive interval functionality with pause/resume/stop controls
+- **Limited Intervals:** Automatically complete after a specified number of ticks
+- **Interval Synchronization:** Sync multiple intervals to tick together at the fastest interval's pace
+- **Reactive Durations:** Dynamically change interval timings based on Svelte's `$state`
+- **Complete Lifecycle Control:** Pause, resume, stop, and restart intervals
+- **Tick Counting:** Track how many times intervals have fired
+- **Immediate Start Option:** Optionally create intervals immediately upon initialization
 - **Automatic Cleanup:** Handles `clearInterval` when durations change or components unmount
-- **Lazy Initialization:** Intervals are only created when `current` or `tickCount` is first accessed, optimizing resource usage (unless `immediate: true`).
-- **Tiny Footprint:** Only 350B (minified + brotlied).
+- **Lazy Initialization:** Intervals only start when accessed (unless `immediate: true`)
 
-## Usage
+## Installation
 
-The `Interval` class allows you to create an interval that can have either a fixed duration or a duration that reacts to Svelte's `$state` changes.
-
-### Basic Usage
-
-You can initialize `Interval` with a static number for its duration:
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  const myInterval = new Interval(1000); // Interval runs every 1000ms (1 second)
-</script>
-
-<p>Current Time: {myInterval.current.toLocaleTimeString()}</p>
+```bash
+npm install svelte-interval-rune
 ```
 
-### Immediate Interval Creation
+## Basic Usage
 
-By default, intervals use lazy initialization and only start when `current` or `tickCount` is first accessed. However, you can create the interval immediately upon construction using the `immediate` option:
+### Creating a Simple Interval
 
 ```svelte
 <script>
   import { Interval } from 'svelte-interval-rune';
 
-  // Lazy initialization (default) - interval starts when .current is accessed
+  const timer = new Interval(1000);
+</script>
+
+<p>Time: {timer.current.toLocaleTimeString()}</p>
+<p>Ticks: {timer.tickCount}</p>
+```
+
+### Immediate vs Lazy Initialization
+
+```svelte
+<script>
+  import { Interval } from 'svelte-interval-rune';
+
+  // Lazy (default) - starts when accessed
   const lazyTimer = new Interval(1000);
 
-  // Immediate initialization - interval starts right away
+  // Immediate - starts right away
   const immediateTimer = new Interval(1000, { immediate: true });
-
-  // The immediate timer is already running, even without accessing .current
-  console.log(immediateTimer.paused); // false - already running
-  console.log(lazyTimer.paused); // false - but not started yet
 </script>
 
-<p>Immediate Timer: {immediateTimer.current.toLocaleTimeString()}</p>
-<p>Lazy Timer: {lazyTimer.current.toLocaleTimeString()}</p>
-```
-
-### Automatic Cleanup
-
-When the `Interval` instance is destroyed, it will automatically clean up the underlying `setInterval` and prevent memory leaks. In addition to this, this works quite well with `using` keyword too:
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  using myInterval = new Interval(1000);
-</script>
+<p>Lazy: {lazyTimer.current.toLocaleTimeString()}</p>
+<p>Immediate: {immediateTimer.current.toLocaleTimeString()}</p>
 ```
 
 ### Reactive Duration
-
-One of the key features of `svelte-interval-rune` is its ability to react to changes in Svelte's `$state`. You can pass a function to the `Interval` constructor that returns a reactive value.
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  let multiplier = $state(1);
-  const reactiveInterval = new Interval(() => multiplier * 500);
-
-  reactiveInterval.current // Returns Date
-</script>
-
-<p>Current Time: {reactiveInterval.current.toLocaleTimeString()}</p>
-<button onclick={() => multiplier++}>Increase Speed</button>
-<p>Current Interval Duration: {reactiveInterval.duration}ms</p>
-```
-
-In this example, as `multiplier` changes, the `reactiveInterval`'s duration automatically updates.
-
-### Pause and Resume Control
-
-The `Interval` class provides pause and resume functionality that allows you to temporarily stop the interval without losing track of how many times it has fired.
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  const timer = new Interval(1000);
-
-  function toggleActive() {
-    if (timer.isActive) {
-      timer.pause();
-    } else {
-      timer.resume();
-    }
-  }
-
-  function resumeImmediate() {
-    timer.resume(true); // Immediately triggers a tick and resets timing
-  }
-</script>
-
-<p>Current Time: {timer.current.toLocaleTimeString()}</p>
-<p>Tick Count: {timer.tickCount}</p>
-<p>Status: {timer.isActive ? 'Running' : 'Paused'}</p>
-
-<button onclick={toggleActive}>
-  {timer.isActive ? 'Pause' : 'Resume'}
-</button>
-<button onclick={resumeImmediate}>Resume Immediately</button>
-```
-
-**Important:** When paused, the interval continues running in the background but stops executing callbacks and incrementing the tick count. When resumed, it picks up with the current interval cycle timing.
-
-### Tick Counting
-
-The `tickCount` property tracks how many times the interval has fired. This count persists across pause/resume cycles and duration changes. **Accessing `tickCount` will automatically start the interval if it hasn't been started yet.**
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  const counter = new Interval(500);
-
-  // Accessing tickCount starts the interval automatically
-  const tickInfo = $derived({
-    count: counter.tickCount, // This starts the interval
-    time: counter.current,
-    duration: counter.duration
-  });
-</script>
-
-<p>Ticks: {tickInfo.count}</p>
-<p>Time: {tickInfo.time.toLocaleTimeString()}</p>
-<p>Interval: {tickInfo.duration}ms</p>
-```
-
-### `current` and `tickCount` Getters
-
-Both the **`current`** and **`tickCount`** getters will automatically start the interval if it hasn't been created yet. This means you can access either property to begin interval execution:
-
-**`current` getter:**
-
-1.  Triggers the creation of the underlying `setInterval` if it hasn't been created yet.
-2.  Returns a new `Date` object representing the current time.
-3.  Establishes a subscription to the interval, ensuring that updates are triggered.
-
-**`tickCount` getter:**
-
-1.  Triggers the creation of the underlying `setInterval` if it hasn't been created yet.
-2.  Returns the current tick count.
-3.  Establishes a subscription to the interval, ensuring that updates are triggered.
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  const clock = new Interval(1000);
-
-  // Either of these will start the interval:
-  const time = $derived(clock.current); // Starts interval and gets current time
-  // OR
-  const ticks = $derived(clock.tickCount); // Starts interval and gets tick count
-</script>
-
-The time is: {time.toLocaleTimeString()}
-```
-
-### `isActive` Getter
-
-The **`isActive`** getter returns the current active state of the interval:
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  const timer = new Interval(1000);
-  timer.current; // Start the interval
-
-  // Use in reactive context
-  const status = $derived(timer.isActive ? 'Running' : 'Paused');
-</script>
-
-<p>Timer Status: {status}</p>
-<button onclick={() => timer.isActive ? timer.pause() : timer.resume()}>
-  Toggle
-</button>
-```
-
-### `duration` Getter and Setter
-
-The **`duration`** getter returns the current effective duration of the interval. If the interval was initialized with a function, this getter will reflect the latest value returned by that function.
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  let dynamicDuration = $state(2000);
-  const myInterval = new Interval(() => dynamicDuration);
-
-  console.log(myInterval.duration); // 2000
-
-  dynamicDuration = 500;
-  console.log(myInterval.duration); // 500
-</script>
-```
-
-You can also use the **`duration` setter** to change the interval's duration after it has been created:
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  const myInterval = new Interval(1000); // Starts with 1000ms duration
-
-  // Change to a new static duration
-  myInterval.duration = 500; // Interval now runs every 500ms
-</script>
-```
-
-#### Important Note on `duration` Setter and Reactivity
-
-When you initialize an `Interval` with a function (e.g., `new Interval(() => reactive_value)`), it creates a reactive link to that function's return value. However, if you later set the `duration` using a **number** (e.g., `myInterval.duration = 500`), this explicitly overwrites the previous reactive function. **The interval will then operate with the new static number, and its connection to the original reactive state variable will be unattached.**
-
-To re-establish a reactive connection after setting a static duration, you must set the `duration` again with a function:
-
-```svelte
-<script>
-  import { Interval } from 'svelte-interval-rune';
-
-  let reactiveValue = $state(1000);
-  const myInterval = new Interval(() => reactiveValue);
-
-  // Interval is currently reactive to reactiveValue
-  console.log(myInterval.duration); // 1000
-
-  // Unattaches from reactiveValue and sets a static duration
-  myInterval.duration = 500;
-  console.log(myInterval.duration); // 500
-  reactiveValue = 2000;
-  console.log(myInterval.duration); // Still 500, not reactive to reactiveValue anymore
-
-  // Re-connects to reactiveValue
-  myInterval.duration = () => reactiveValue;
-  console.log(myInterval.duration); // 2000
-</script>
-```
-
-## Advanced Examples
-
-### Advanced Clock with Immediate Option
 
 ```svelte
 <script>
   import { Interval } from 'svelte-interval-rune';
 
   let speed = $state(1000);
-
-  // Background timer that starts immediately
-  const backgroundClock = new Interval(() => speed, { immediate: true });
-
-  // User-controlled timer that starts on demand
-  const userClock = new Interval(100);
-  let userStarted = $state(false);
-
-  const timeData = $derived({
-    background: backgroundClock.current,
-    user: userStarted ? userClock.current : null,
-    backgroundTicks: backgroundClock.tickCount,
-    userTicks: userClock.tickCount
-  });
-
-  function startUserTimer() {
-    userStarted = true;
-  }
+  const timer = new Interval(() => speed);
 </script>
 
-<div>
-  <h3>Background Clock (immediate): {timeData.background.toLocaleTimeString()}</h3>
-  <p>Ticks: {timeData.backgroundTicks} | Speed: {speed}ms</p>
-
-  <h3>User Clock: {timeData.user?.toLocaleTimeString() ?? 'Not started'}</h3>
-  <p>Ticks: {timeData.userTicks}</p>
-
-  {#if !userStarted}
-    <button onclick={startUserTimer}>Start User Timer</button>
-  {/if}
-
-  <button onclick={() => speed = speed === 1000 ? 100 : 1000}>
-    Toggle Background Speed
-  </button>
-
-  <button onclick={() => backgroundClock.isActive ? backgroundClock.pause() : backgroundClock.resume()}>
-    {backgroundClock.isActive ? 'Pause' : 'Resume'} Background
-  </button>
-</div>
+<p>Duration: {timer.duration}ms | Ticks: {timer.tickCount}</p>
+<button onclick={() => speed = 500}>Fast</button>
+<button onclick={() => speed = 2000}>Slow</button>
 ```
 
-### Timer with Reset Functionality
+## Interval Control
+
+### Pause, Resume, and Stop
+
+```svelte
+<script>
+  import { Interval } from 'svelte-interval-rune';
+
+  const timer = new Interval(1000);
+</script>
+
+<p>Ticks: {timer.tickCount} | Status: {timer.isActive ? 'Running' : timer.isStopped ? 'Stopped' : 'Paused'}</p>
+
+<button onclick={() => timer.pause()}>Pause</button>
+<button onclick={() => timer.resume()}>Resume</button>
+<button onclick={() => timer.resume(true)}>Resume Immediate</button>
+<button onclick={() => timer.stop()}>Stop</button>
+```
+
+**Key Differences:**
+
+- **Pause:** Temporarily stops ticking but keeps the interval running internally
+- **Stop:** Completely destroys the interval and resets state
+- **Resume:** Continues from where it was paused
+- **Resume(true):** Immediately ticks and resets timing cycle
+
+## Limited Intervals
+
+Use `LimitedInterval` when you need an interval that automatically stops after a specific number of ticks.
+
+```svelte
+<script>
+  import { LimitedInterval } from 'svelte-interval-rune';
+
+  const timer = new LimitedInterval(500, 10); // 500ms interval, stops after 10 ticks
+</script>
+
+<p>Ticks: {timer.tickCount} / {timer.maxTicks}</p>
+<p>Remaining: {timer.remainingTicks}</p>
+<p>Completed: {timer.isCompleted}</p>
+
+<button onclick={() => timer.reset()}>Reset</button>
+<input type="number" bind:value={timer.maxTicks} min="1" />
+```
+
+### LimitedInterval Features
+
+- **Automatic Completion:** Stops automatically after reaching `maxTicks`
+- **Reset Functionality:** Use `reset()` to continue from current tick count
+- **Dynamic Limits:** Change `maxTicks` at runtime
+- **Remaining Ticks:** Track progress with `remainingTicks`
+- **Completion State:** Check `isCompleted` status
+
+## Interval Synchronization
+
+The `sync()` function allows multiple intervals to tick together at the pace of the fastest interval.
+
+```svelte
+<script>
+  import { Interval, LimitedInterval, sync } from 'svelte-interval-rune';
+
+  const timer1 = new Interval(1000);        // 1 second
+  const timer2 = new Interval(500);         // 500ms (will be leader - fastest)
+  const timer3 = new LimitedInterval(750, 5); // 750ms, 5 ticks max
+
+  const controller = sync(timer1, timer2, timer3);
+</script>
+
+<p>Leader: {controller.leader.duration}ms | Sync: {controller.isSynced ? 'On' : 'Off'}</p>
+<p>Timer1: {timer1.tickCount} | Timer2: {timer2.tickCount} | Timer3: {timer3.tickCount}</p>
+
+<button onclick={() => controller.enable()}>Enable Sync</button>
+<button onclick={() => controller.disable()}>Disable Sync</button>
+```
+
+### Sync Behavior
+
+- **Leader Selection:** The fastest interval (shortest duration) becomes the leader
+- **Synchronized Ticking:** All intervals tick together at the leader's pace
+- **Individual State:** Each interval maintains its own pause/active state
+- **Leader Completion:** When the leader completes (if it's a LimitedInterval), sync stops
+- **Restoration:** When sync is disabled, intervals return to their individual timing
+
+### Advanced Sync Example
+
+```svelte
+<script>
+  import { Interval, LimitedInterval, sync } from 'svelte-interval-rune';
+
+  const fast = new Interval(100);           // Fast timer
+  const limited = new LimitedInterval(200, 3); // Limited interval
+
+  const controller = sync(fast, limited);
+</script>
+
+<p>Fast: {fast.tickCount} | Limited: {limited.tickCount}/{limited.maxTicks}</p>
+<p>Leader: {controller.leader.duration}ms | Completed: {limited.isCompleted}</p>
+
+<button onclick={() => controller.enable()}>Start Sync</button>
+<button onclick={() => limited.reset()}>Reset Limited</button>
+```
+
+## API Reference
+
+### Interval Class
+
+#### Constructor
+
+```typescript
+new Interval(duration: number | (() => number), options?: IntervalOptions)
+```
+
+**Parameters:**
+
+- `duration` - Static number or reactive function returning interval duration in milliseconds
+- `options.immediate?` - If `true`, starts interval immediately. Default: `false`
+
+#### Properties
+
+- `current: Date` - Gets current time and auto-starts interval
+- `duration: number` - Gets or sets the interval duration
+- `isActive: boolean` - Whether the interval is currently active (not paused/stopped)
+- `isStopped: boolean` - Whether the interval has been completely stopped
+- `tickCount: number` - Number of times the interval has fired (auto-starts interval)
+
+#### Methods
+
+- `pause(): void` - Pauses the interval (can be resumed)
+- `resume(immediate?: boolean): void` - Resumes the interval, optionally with immediate tick
+- `stop(): void` - Completely stops and cleans up the interval
+- `[Symbol.dispose](): void` - Automatic cleanup (works with `using`)
+
+### LimitedInterval Class
+
+Extends `Interval` with automatic completion after N ticks.
+
+#### Constructor
+
+```typescript
+new LimitedInterval(duration: number | (() => number), maxTicks: number, options?: IntervalOptions)
+```
+
+**Additional Parameters:**
+
+- `maxTicks` - Number of ticks before auto-completion
+
+#### Additional Properties
+
+- `maxTicks: number` - Gets or sets the maximum tick limit
+- `isCompleted: boolean` - Whether the interval has reached its tick limit
+- `remainingTicks: number` - Number of ticks remaining before completion
+
+#### Additional Methods
+
+- `reset(): void` - Resets completion state and resumes from current tick count
+
+### sync() Function
+
+#### Signature
+
+```typescript
+function sync(...intervals: Interval[]): SyncController;
+```
+
+**Parameters:**
+
+- `...intervals` - One or more Interval or LimitedInterval instances to synchronize
+
+#### Returns: SyncController
+
+```typescript
+interface SyncController {
+	enable(): void; // Start synchronization
+	disable(): void; // Stop synchronization and restore individual timing
+	isSynced: boolean; // Whether sync is currently active
+	leader: Interval; // The fastest interval driving synchronization
+}
+```
+
+### IntervalOptions
+
+```typescript
+interface IntervalOptions {
+	immediate?: boolean; // Start interval immediately on construction
+}
+```
+
+## Advanced Patterns
+
+### Custom Timer with Reset
 
 ```svelte
 <script>
   import { Interval } from 'svelte-interval-rune';
 
   let duration = $state(1000);
-  using timer = new Interval(() => duration);
+  let timer = $state(new Interval(() => duration));
 
-  function reset() {
-    // Pause and recreate to reset tick count
-    timer.pause();
-    timer.duration = duration; // This recreates the interval
-    timer.resume(true); // Resume with immediate tick
+  function resetTimer() {
+    timer.stop();
+    timer = new Interval(() => duration);
   }
 </script>
 
-<div>
-  <p>Time: {timer.current.toLocaleTimeString()}</p>
-  <p>Ticks: {timer.tickCount}</p>
-  <p>Duration: {duration}ms</p>
-
-  <input type="range" min="100" max="2000" step="100" bind:value={duration} />
-
-  <button onclick={() => timer.isActive ? timer.pause() : timer.resume()}>
-    {timer.isActive ? 'Pause' : 'Resume'}
-  </button>
-
-  <button onclick={reset}>Reset Timer</button>
-</div>
+<p>Ticks: {timer.tickCount} | Duration: {duration}ms</p>
+<button onclick={() => duration = 500}>Fast</button>
+<button onclick={() => resetTimer()}>Reset</button>
 ```
 
-### API Reference
+### Countdown Timer
 
-### Constructor
+```svelte
+<script>
+  import { LimitedInterval } from 'svelte-interval-rune';
 
-- `new Interval(duration: number | (() => number), options?: IntervalOptions)` - Creates a new interval with the specified duration and options
+  let countdown = new LimitedInterval(1000, 10); // 10 second countdown
+</script>
 
-#### Options
+<p>{countdown.isCompleted ? 'Time\'s Up!' : `${countdown.remainingTicks}s left`}</p>
+<button onclick={() => countdown.current}>Start</button>
+<button onclick={() => countdown.reset()}>Reset</button>
+```
 
-- `immediate?: boolean` - If `true`, creates and starts the interval immediately upon construction. Default: `false`
+## Performance Notes
 
-### Properties
+- **Lazy Initialization:** Intervals only start when `current` or `tickCount` is first accessed (unless `immediate: true`)
+- **Automatic Cleanup:** All intervals automatically clean up when components unmount
+- **Memory Efficient:** Stopped intervals are fully cleaned up and garbage collected
+- **Sync Overhead:** Minimal overhead when syncing intervals - leader drives all timing
 
-- `current: Date` - Gets current time and starts/subscribes to the interval (auto-starts interval)
-- `duration: number` - Gets or sets the interval duration in milliseconds
-- `isActive: boolean` - Gets the current active state of the interval
-- `tickCount: number` - Gets the number of times the interval has fired (auto-starts interval)
+## Bundle Size
 
-### Methods
-
-- `pause(): void` - Pauses the interval
-- `resume(immediate?: boolean): void` - Resumes the interval, optionally with immediate tick
-- `[Symbol.dispose](): void` - Cleans up the interval (automatic with `using`)
-
-**Note:** Both `current` and `tickCount` getters will automatically start the interval when first accessed (if not already started with `immediate: true`), making initialization lazy and efficient by default.
+- **Interval:** ~478B (minified + brotlied)
+- **LimitedInterval:** ~687B (minified + brotlied)
+- **sync:** ~306B (minified + brotlied)
+- **Interval + LimitedInterval:** ~698B (minified + brotlied)
+- **Interval + sync:** ~678B (minified + brotlied)
+- **LimitedInterval + sync:** ~883B (minified + brotlied)
+- **Total Package:** ~886B for all features

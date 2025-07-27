@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Interval } from '../src/index.svelte';
-import { flushSync, tick } from 'svelte';
+import { Interval, sync, LimitedInterval } from '../src/index.svelte';
 
 // Mock timers for controlled testing
 vi.useFakeTimers();
@@ -497,6 +496,601 @@ describe('Interval', () => {
 
 			baseTime = 200;
 			expect(interval.duration).toBe(400);
+		});
+	});
+});
+
+describe('LimitedInterval', () => {
+	let interval: LimitedInterval;
+
+	beforeEach(() => {
+		vi.clearAllTimers();
+	});
+
+	afterEach(() => {
+		vi.clearAllTimers();
+	});
+
+	describe('constructor', () => {
+		it('should create LimitedInterval with max ticks', () => {
+			interval = new LimitedInterval(1000, 5);
+			expect(interval.duration).toBe(1000);
+			expect(interval.maxTicks).toBe(5);
+			expect(interval.isCompleted).toBe(false);
+			expect(interval.remainingTicks).toBe(5);
+		});
+
+		it('should accept immediate option', () => {
+			const setIntervalSpy = vi.spyOn(window, 'setInterval');
+			interval = new LimitedInterval(1000, 3, { immediate: true });
+
+			expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
+			expect(interval.maxTicks).toBe(3);
+		});
+
+		it('should throw error for invalid max ticks', () => {
+			expect(() => new LimitedInterval(1000, 0)).toThrow('max_ticks must be greater than 0');
+			expect(() => new LimitedInterval(1000, -1)).toThrow('max_ticks must be greater than 0');
+		});
+
+		it('should accept reactive duration', () => {
+			let dynamicDuration = $state(500);
+			interval = new LimitedInterval(() => dynamicDuration, 10);
+
+			expect(interval.duration).toBe(500);
+
+			dynamicDuration = 1000;
+			expect(interval.duration).toBe(1000);
+		});
+	});
+
+	describe('tick counting and limits', () => {
+		it('should stop after reaching max ticks', () => {
+			interval = new LimitedInterval(100, 3);
+			interval.current; // Start the interval
+
+			expect(interval.tickCount).toBe(0);
+			expect(interval.isCompleted).toBe(false);
+
+			vi.advanceTimersByTime(150); // 1 tick
+			expect(interval.tickCount).toBe(1);
+			expect(interval.isCompleted).toBe(false);
+			expect(interval.remainingTicks).toBe(2);
+
+			vi.advanceTimersByTime(100); // 2 ticks
+			expect(interval.tickCount).toBe(2);
+			expect(interval.isCompleted).toBe(false);
+			expect(interval.remainingTicks).toBe(1);
+
+			vi.advanceTimersByTime(100); // 3 ticks - should complete
+			expect(interval.tickCount).toBe(3);
+			expect(interval.isCompleted).toBe(true);
+			expect(interval.remainingTicks).toBe(0);
+
+			// Should not tick anymore
+			vi.advanceTimersByTime(1000);
+			expect(interval.tickCount).toBe(3);
+			expect(interval.isCompleted).toBe(true);
+		});
+
+		it('should not tick when paused', () => {
+			interval = new LimitedInterval(100, 5);
+			interval.current;
+
+			vi.advanceTimersByTime(150);
+			expect(interval.tickCount).toBe(1);
+
+			interval.pause();
+			vi.advanceTimersByTime(500);
+			expect(interval.tickCount).toBe(1);
+			expect(interval.isCompleted).toBe(false);
+
+			interval.resume();
+			vi.advanceTimersByTime(100); // Should tick at next 100ms boundary
+			expect(interval.tickCount).toBe(2);
+		});
+
+		it('should handle immediate tick on resume', () => {
+			interval = new LimitedInterval(1000, 3);
+			interval.current;
+
+			interval.pause();
+			expect(interval.tickCount).toBe(0);
+
+			interval.resume(true);
+			expect(interval.tickCount).toBe(1);
+			expect(interval.remainingTicks).toBe(2);
+		});
+
+		it('should complete on immediate tick if at limit', () => {
+			interval = new LimitedInterval(100, 1);
+			interval.current;
+
+			interval.pause();
+			expect(interval.tickCount).toBe(0);
+
+			interval.resume(true);
+			expect(interval.tickCount).toBe(1);
+			expect(interval.isCompleted).toBe(true);
+		});
+	});
+
+	describe('reset functionality', () => {
+		it('should reset completion state', () => {
+			interval = new LimitedInterval(100, 2);
+			interval.current;
+
+			vi.advanceTimersByTime(250);
+			expect(interval.isCompleted).toBe(true);
+			expect(interval.tickCount).toBe(2);
+
+			interval.reset();
+			expect(interval.isCompleted).toBe(false);
+			expect(interval.remainingTicks).toBe(2);
+			// Tick count should not reset - it's cumulative
+			expect(interval.tickCount).toBe(2);
+
+			vi.advanceTimersByTime(250);
+			expect(interval.tickCount).toBe(4);
+			expect(interval.isCompleted).toBe(true);
+		});
+
+		it('should resume interval if it was stopped', () => {
+			interval = new LimitedInterval(100, 1);
+			interval.current;
+
+			vi.advanceTimersByTime(150);
+			expect(interval.isCompleted).toBe(true);
+			expect(interval.isActive).toBe(false);
+
+			interval.reset();
+			expect(interval.isActive).toBe(true);
+			expect(interval.isCompleted).toBe(false);
+		});
+	});
+
+	describe('maxTicks setter', () => {
+		it('should update max ticks and reset completion', () => {
+			interval = new LimitedInterval(100, 2);
+			interval.current;
+
+			vi.advanceTimersByTime(250);
+			expect(interval.isCompleted).toBe(true);
+
+			interval.maxTicks = 5;
+			expect(interval.maxTicks).toBe(5);
+			expect(interval.isCompleted).toBe(false);
+			expect(interval.remainingTicks).toBe(3); // 5 - 2 current ticks
+		});
+
+		it('should throw error for invalid max ticks', () => {
+			interval = new LimitedInterval(100, 5);
+
+			expect(() => {
+				interval.maxTicks = 0;
+			}).toThrow('max_ticks must be greater than 0');
+			expect(() => {
+				interval.maxTicks = -1;
+			}).toThrow('max_ticks must be greater than 0');
+		});
+	});
+
+	describe('inheritance from Interval', () => {
+		it('should maintain all Interval functionality', () => {
+			interval = new LimitedInterval(500, 10);
+
+			// Test inherited methods and properties
+			expect(interval.isActive).toBe(true);
+			expect(interval.duration).toBe(500);
+
+			interval.pause();
+			expect(interval.isActive).toBe(false);
+
+			interval.resume();
+			expect(interval.isActive).toBe(true);
+
+			interval.duration = 1000;
+			expect(interval.duration).toBe(1000);
+		});
+
+		it('should work with Symbol.dispose', () => {
+			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
+			interval = new LimitedInterval(100, 5);
+			interval.current;
+
+			interval[Symbol.dispose]();
+			expect(clearIntervalSpy).toHaveBeenCalled();
+		});
+	});
+});
+
+describe('sync function', () => {
+	let interval1: Interval;
+	let interval2: Interval;
+	let interval3: Interval;
+	let controller: ReturnType<typeof sync>;
+
+	beforeEach(() => {
+		vi.clearAllTimers();
+	});
+
+	afterEach(() => {
+		vi.clearAllTimers();
+		controller?.disable();
+	});
+
+	describe('basic synchronization', () => {
+		it('should synchronize multiple intervals', () => {
+			interval1 = new Interval(300);
+			interval2 = new Interval(100); // This should be the leader (fastest)
+			interval3 = new Interval(200);
+
+			controller = sync(interval1, interval2, interval3);
+			expect(controller.leader).toBe(interval2);
+
+			controller.enable(); // This starts the leader automatically
+
+			// After 100ms, all should tick once (leader's pace)
+			vi.advanceTimersByTime(150);
+			expect(interval1.tickCount).toBe(1);
+			expect(interval2.tickCount).toBe(1);
+			expect(interval3.tickCount).toBe(1);
+
+			// After another 100ms, all should tick again
+			vi.advanceTimersByTime(100);
+			expect(interval1.tickCount).toBe(2);
+			expect(interval2.tickCount).toBe(2);
+			expect(interval3.tickCount).toBe(2);
+		});
+
+		it('should select the fastest interval as leader', () => {
+			interval1 = new Interval(1000);
+			interval2 = new Interval(500);
+			interval3 = new Interval(100);
+
+			controller = sync(interval1, interval2, interval3);
+			expect(controller.leader).toBe(interval3); // 100ms is fastest
+		});
+
+		it('should handle equal duration intervals', () => {
+			interval1 = new Interval(200);
+			interval2 = new Interval(200);
+			interval3 = new Interval(200);
+
+			controller = sync(interval1, interval2, interval3);
+			expect(controller.leader).toBe(interval1); // First one becomes leader
+		});
+	});
+
+	describe('start and stop functionality', () => {
+		beforeEach(() => {
+			interval1 = new Interval(300);
+			interval2 = new Interval(100);
+			interval3 = new Interval(200);
+			controller = sync(interval1, interval2, interval3);
+		});
+
+		it('should start synchronization', () => {
+			expect(controller.isSynced).toBe(false);
+
+			controller.enable(); // This starts the leader automatically
+			expect(controller.isSynced).toBe(true);
+
+			vi.advanceTimersByTime(150);
+			expect(interval1.tickCount).toBe(1);
+			expect(interval2.tickCount).toBe(1);
+			expect(interval3.tickCount).toBe(1);
+		});
+
+		it('should stop synchronization and restore individual behavior', () => {
+			controller.enable(); // This starts the leader automatically
+
+			vi.advanceTimersByTime(250);
+			expect(interval1.tickCount).toBe(2);
+			expect(interval2.tickCount).toBe(2);
+			expect(interval3.tickCount).toBe(2);
+
+			controller.disable();
+			expect(controller.isSynced).toBe(false);
+
+			// Clear timers to ensure clean restart with individual timing
+			vi.clearAllTimers();
+
+			// Restart intervals with individual timing
+			interval1.current;
+			interval2.current;
+			interval3.current;
+
+			// Now they should tick at their individual rates
+			vi.advanceTimersByTime(350);
+			// interval1 (300ms): should tick once at 300ms = 1 more (2 + 1 = 3)
+			// interval2 (100ms): should tick 3 times = 3 more (2 + 3 = 5)
+			// interval3 (200ms): should tick once at 200ms = 1 more (2 + 1 = 3)
+			expect(interval1.tickCount).toBe(3);
+			expect(interval2.tickCount).toBe(5);
+			expect(interval3.tickCount).toBe(3);
+		});
+
+		it('should not start if already active', () => {
+			controller.enable();
+
+			// Start intervals after sync is active and capture initial count
+			expect(interval1.tickCount).toBe(0);
+			const ticksBefore = interval1.tickCount; // This will be 0
+
+			controller.enable(); // Should be no-op
+			vi.advanceTimersByTime(150);
+
+			// Should get exactly one tick since only one start() was effective
+			expect(interval1.tickCount).toBe(1);
+			expect(interval1.tickCount - ticksBefore).toBe(1);
+		});
+
+		it('should not stop if already inactive', () => {
+			expect(() => controller.disable()).not.toThrow();
+			expect(controller.isSynced).toBe(false);
+		});
+	});
+
+	describe('reactive leader property', () => {
+		beforeEach(() => {
+			interval1 = new Interval(300);
+			interval2 = new Interval(100);
+			controller = sync(interval1, interval2);
+		});
+
+		it('should return leader when active', () => {
+			controller.enable();
+			expect(controller.leader).toBe(interval2);
+		});
+
+		it('should return leader even when inactive', () => {
+			expect(controller.leader).toBe(interval2);
+
+			controller.enable();
+			expect(controller.leader).toBe(interval2);
+
+			controller.disable();
+			expect(controller.leader).toBe(interval2);
+		});
+	});
+
+	describe('error handling', () => {
+		it('should throw error for empty intervals array', () => {
+			expect(() => sync()).toThrow('At least one interval is required for sync');
+		});
+
+		it('should handle intervals with zero duration', () => {
+			interval1 = new Interval(0);
+			interval2 = new Interval(100);
+
+			controller = sync(interval1, interval2);
+			expect(controller.leader).toBe(interval1); // 0 is fastest
+
+			expect(() => controller.enable()).not.toThrow();
+		});
+	});
+
+	describe('pause/resume behavior during sync', () => {
+		beforeEach(() => {
+			interval1 = new Interval(200);
+			interval2 = new Interval(100);
+			controller = sync(interval1, interval2);
+		});
+
+		it('should respect individual pause states', () => {
+			controller.enable(); // This starts the leader automatically
+
+			interval1.pause();
+
+			vi.advanceTimersByTime(150);
+			expect(interval1.tickCount).toBe(0); // Paused, so no ticks
+			expect(interval2.tickCount).toBe(1); // Still active
+		});
+
+		it('should handle leader being paused', () => {
+			controller.enable(); // This starts the leader automatically
+
+			interval2.pause(); // Pause the leader
+
+			vi.advanceTimersByTime(150);
+			expect(interval1.tickCount).toBe(0); // No leader ticks = no sync ticks
+			expect(interval2.tickCount).toBe(0); // Leader is paused
+		});
+	});
+});
+
+describe('Integration: sync with LimitedInterval', () => {
+	let limited1: LimitedInterval;
+	let limited2: LimitedInterval;
+	let limited3: LimitedInterval;
+	let controller: ReturnType<typeof sync>;
+
+	beforeEach(() => {
+		vi.clearAllTimers();
+	});
+
+	afterEach(() => {
+		vi.clearAllTimers();
+		controller?.disable();
+	});
+
+	describe('synchronized limited intervals', () => {
+		it('should sync LimitedIntervals while preserving limits', () => {
+			limited1 = new LimitedInterval(300, 5);
+			limited2 = new LimitedInterval(100, 3); // Fastest, will be leader
+			limited3 = new LimitedInterval(200, 4);
+
+			controller = sync(limited1, limited2, limited3);
+			controller.enable(); // Leader starts automatically
+
+			// All sync to 100ms pace until leader completes
+			vi.advanceTimersByTime(350); // 3 ticks - leader completes
+			expect(limited1.tickCount).toBe(3);
+			expect(limited2.tickCount).toBe(3);
+			expect(limited2.isCompleted).toBe(true);
+			expect(limited3.tickCount).toBe(3);
+
+			// Once leader completes, it stops driving sync
+			vi.advanceTimersByTime(200);
+			expect(limited1.tickCount).toBe(3); // No more ticks
+			expect(limited2.tickCount).toBe(3);
+			expect(limited3.tickCount).toBe(3);
+		});
+
+		it('should handle when leader completes first', () => {
+			limited1 = new LimitedInterval(300, 10);
+			limited2 = new LimitedInterval(100, 2); // Leader with smallest limit
+			limited3 = new LimitedInterval(200, 5);
+
+			controller = sync(limited1, limited2, limited3);
+			controller.enable(); // limited2 (leader) starts automatically
+
+			vi.advanceTimersByTime(250); // 2 ticks - leader completes
+			expect(limited1.tickCount).toBe(2);
+			expect(limited2.tickCount).toBe(2);
+			expect(limited2.isCompleted).toBe(true);
+			expect(limited3.tickCount).toBe(2);
+
+			// Since leader is completed, sync should stop working
+			vi.advanceTimersByTime(500);
+			expect(limited1.tickCount).toBe(2); // No more ticks
+			expect(limited2.tickCount).toBe(2);
+			expect(limited3.tickCount).toBe(2);
+		});
+	});
+
+	describe('mixed interval types in sync', () => {
+		it('should sync regular Interval with LimitedInterval', () => {
+			const regular = new Interval(200);
+			limited1 = new LimitedInterval(100, 3);
+
+			controller = sync(regular, limited1);
+			controller.enable(); // limited1 (leader) starts automatically
+
+			vi.advanceTimersByTime(350); // 3 ticks - limited1 completes
+			expect(regular.tickCount).toBe(3);
+			expect(limited1.tickCount).toBe(3);
+			expect(limited1.isCompleted).toBe(true);
+
+			// Once leader completes, sync stops
+			vi.advanceTimersByTime(200);
+			expect(regular.tickCount).toBe(3);
+			expect(limited1.tickCount).toBe(3);
+		});
+
+		it('should handle complex mixed scenarios', () => {
+			const regular1 = new Interval(300);
+			limited1 = new LimitedInterval(100, 2);
+			const regular2 = new Interval(200);
+			limited2 = new LimitedInterval(150, 4);
+
+			controller = sync(regular1, limited1, regular2, limited2);
+			expect(controller.leader).toBe(limited1); // 100ms is fastest
+
+			controller.enable(); // limited1 (leader) starts automatically
+
+			vi.advanceTimersByTime(250); // 2 ticks - limited1 completes
+			expect(regular1.tickCount).toBe(2);
+			expect(limited1.tickCount).toBe(2);
+			expect(limited1.isCompleted).toBe(true);
+			expect(regular2.tickCount).toBe(2);
+			expect(limited2.tickCount).toBe(2);
+
+			// Since leader (limited1) is completed, no more sync ticks
+			vi.advanceTimersByTime(300);
+			expect(regular1.tickCount).toBe(2); // No more ticks
+			expect(limited1.tickCount).toBe(2);
+			expect(regular2.tickCount).toBe(2);
+			expect(limited2.tickCount).toBe(2);
+		});
+	});
+
+	describe('reset functionality during sync', () => {
+		it('should handle reset of limited interval during sync', () => {
+			limited1 = new LimitedInterval(100, 2);
+			limited2 = new LimitedInterval(200, 5);
+
+			controller = sync(limited1, limited2);
+			controller.enable(); // limited1 (leader) starts automatically
+
+			vi.advanceTimersByTime(250); // limited1 completes after 2 ticks
+			expect(limited1.isCompleted).toBe(true);
+			expect(limited1.tickCount).toBe(2);
+
+			limited1.reset();
+			expect(limited1.isCompleted).toBe(false);
+
+			// Should continue syncing after reset
+			vi.advanceTimersByTime(200); // 2 more ticks
+			expect(limited1.tickCount).toBe(4); // 2 (before reset) + 2 (after reset)
+			expect(limited2.tickCount).toBe(4);
+			expect(limited1.isCompleted).toBe(true); // Completed again after reset
+		});
+
+		it('should handle maxTicks changes during sync', () => {
+			limited1 = new LimitedInterval(100, 2); // This will be leader
+			limited2 = new LimitedInterval(200, 5);
+
+			controller = sync(limited1, limited2);
+			controller.enable(); // limited1 starts automatically
+
+			vi.advanceTimersByTime(150); // 1 tick
+			expect(limited1.tickCount).toBe(1);
+			expect(limited2.tickCount).toBe(1);
+
+			limited1.maxTicks = 10; // Increase leader's limit
+
+			vi.advanceTimersByTime(500); // 5 more ticks (6 total)
+			expect(limited1.tickCount).toBe(6);
+			expect(limited1.isCompleted).toBe(false);
+			expect(limited2.tickCount).toBe(5); // limited2 completes at 5 ticks
+			expect(limited2.isCompleted).toBe(true); // Should be completed
+		});
+	});
+
+	describe('sync state management', () => {
+		it('should maintain completion state when stopping sync', () => {
+			limited1 = new LimitedInterval(100, 2);
+			limited2 = new LimitedInterval(200, 5);
+
+			controller = sync(limited1, limited2);
+			controller.enable(); // limited1 (leader) starts automatically
+
+			vi.advanceTimersByTime(250); // limited1 completes
+			expect(limited1.isCompleted).toBe(true);
+
+			controller.disable();
+			expect(limited1.isCompleted).toBe(true); // Should remain completed
+			expect(limited2.isCompleted).toBe(false);
+		});
+
+		it('should restore individual timing after sync stops', () => {
+			limited1 = new LimitedInterval(300, 10);
+			limited2 = new LimitedInterval(100, 10);
+
+			controller = sync(limited1, limited2);
+			controller.enable(); // limited2 (leader) starts automatically
+
+			vi.advanceTimersByTime(250); // 2 ticks at 100ms pace
+			expect(limited1.tickCount).toBe(2);
+			expect(limited2.tickCount).toBe(2);
+
+			controller.disable();
+
+			// Clear timers to ensure clean restart with individual timing
+			vi.clearAllTimers();
+
+			// Restart intervals with individual timing
+			limited1.current;
+			limited2.current;
+
+			// Now they tick at individual rates
+			vi.advanceTimersByTime(350);
+			// limited1 (300ms): should tick once at 300ms = 1 more (2 + 1 = 3)
+			// limited2 (100ms): should tick 3 times = 3 more (2 + 3 = 5)
+			expect(limited1.tickCount).toBe(3);
+			expect(limited2.tickCount).toBe(5);
 		});
 	});
 });
