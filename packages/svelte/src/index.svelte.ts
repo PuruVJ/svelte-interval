@@ -277,7 +277,7 @@ export function sync(...intervals: Interval[]) {
 			}
 		},
 
-		get isActive() {
+		get isSynced() {
 			return sync_active;
 		},
 

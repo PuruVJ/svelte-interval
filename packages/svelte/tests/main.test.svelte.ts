@@ -771,10 +771,10 @@ describe('sync function', () => {
 		});
 
 		it('should start synchronization', () => {
-			expect(controller.isActive).toBe(false);
+			expect(controller.isSynced).toBe(false);
 
 			controller.enable(); // This starts the leader automatically
-			expect(controller.isActive).toBe(true);
+			expect(controller.isSynced).toBe(true);
 
 			vi.advanceTimersByTime(150);
 			expect(interval1.tickCount).toBe(1);
@@ -791,7 +791,7 @@ describe('sync function', () => {
 			expect(interval3.tickCount).toBe(2);
 
 			controller.disable();
-			expect(controller.isActive).toBe(false);
+			expect(controller.isSynced).toBe(false);
 
 			// Clear timers to ensure clean restart with individual timing
 			vi.clearAllTimers();
@@ -828,7 +828,7 @@ describe('sync function', () => {
 
 		it('should not stop if already inactive', () => {
 			expect(() => controller.disable()).not.toThrow();
-			expect(controller.isActive).toBe(false);
+			expect(controller.isSynced).toBe(false);
 		});
 	});
 
