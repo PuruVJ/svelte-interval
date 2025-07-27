@@ -43,6 +43,7 @@ export class Interval {
 
 	#duration_input: (() => number) | number = $state(0);
 	#is_active = $state(true);
+	#is_stopped = $state(false);
 	#tick_count = $state(0);
 	#version = $state(0);
 
@@ -136,6 +137,8 @@ export class Interval {
 	 * @param immediate - If true, immediately triggers a tick and resets the interval timing.
 	 */
 	resume(immediate = false) {
+		if (this.#is_stopped) return;
+
 		this.#is_active = true;
 
 		if (immediate) {
@@ -195,6 +198,7 @@ export class Interval {
 	stop(): void {
 		clearInterval(this.#interval_id);
 		this.#is_active = false;
+		this.#is_stopped = true; // Update the reactive state
 		this.#interval_id = 0;
 	}
 
@@ -202,7 +206,7 @@ export class Interval {
 	 * Check if interval has been completely stopped
 	 */
 	get isStopped(): boolean {
-		return this.#interval_id === 0;
+		return this.#is_stopped;
 	}
 
 	[Symbol.dispose]() {
