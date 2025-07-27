@@ -325,7 +325,6 @@ describe('Interval', () => {
 		});
 	});
 
-	// Add to existing Interval tests
 	describe('stop functionality', () => {
 		it('should stop interval and set isStopped to true', () => {
 			const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
