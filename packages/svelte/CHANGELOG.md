@@ -1,5 +1,15 @@
 # svelte-interval-rune
 
+## 1.3.0
+
+### Minor Changes
+
+- [#11](https://github.com/PuruVJ/svelte-interval/pull/11) [`5b8d0ec`](https://github.com/PuruVJ/svelte-interval/commit/5b8d0ec5048293327ee2e74cd7ae5d1d8fd6c2fc) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Interval: stop, isStopped
+
+- [#11](https://github.com/PuruVJ/svelte-interval/pull/11) [`5b8d0ec`](https://github.com/PuruVJ/svelte-interval/commit/5b8d0ec5048293327ee2e74cd7ae5d1d8fd6c2fc) Thanks [@PuruVJ](https://github.com/PuruVJ)! - LimitedInterval
+
+- [#11](https://github.com/PuruVJ/svelte-interval/pull/11) [`5b8d0ec`](https://github.com/PuruVJ/svelte-interval/commit/5b8d0ec5048293327ee2e74cd7ae5d1d8fd6c2fc) Thanks [@PuruVJ](https://github.com/PuruVJ)! - sync
+
 ## 1.2.0
 
 ### Minor Changes
