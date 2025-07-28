@@ -1,5 +1,11 @@
 # svelte-interval-rune
 
+## 1.3.2
+
+### Patch Changes
+
+- [`3d0e5d1`](https://github.com/PuruVJ/svelte-interval/commit/3d0e5d1bd8bb2942b197687a19cd3a82867363dd) Thanks [@PuruVJ](https://github.com/PuruVJ)! - Switch to public private property
+
 ## 1.3.1
 
 ### Patch Changes
