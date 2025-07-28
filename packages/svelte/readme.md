@@ -299,10 +299,10 @@ interface IntervalOptions {
 
 ## Bundle Size
 
-- **Interval:** ~478B (minified + brotlied)
-- **LimitedInterval:** ~687B (minified + brotlied)
-- **sync:** ~306B (minified + brotlied)
-- **Interval + LimitedInterval:** ~698B (minified + brotlied)
-- **Interval + sync:** ~678B (minified + brotlied)
-- **LimitedInterval + sync:** ~883B (minified + brotlied)
-- **Total Package:** ~886B for all features
+- **Interval:** ~475B (minified + brotlied)
+- **LimitedInterval:** ~681B (minified + brotlied)
+- **sync:** ~289B (minified + brotlied)
+- **Interval + LimitedInterval:** ~684B (minified + brotlied)
+- **Interval + sync:** ~679B (minified + brotlied)
+- **LimitedInterval + sync:** ~877B (minified + brotlied)
+- **Total Package:** ~876B for all features
